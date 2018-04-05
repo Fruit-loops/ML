@@ -1,0 +1,104 @@
+# coding:UTF-8
+# random forests
+
+import numpy as np
+from math import log
+from tree import build_tree
+import random as rd
+
+def random_forest_training(data_train,trees_num):
+    '''
+    构建随机森林
+    :param data_train: 训练数据
+    :param trees_num: tress_num(int)分类树的个数
+    :return: trees_results
+             trees_num(int) 分类树的个数
+    '''
+    trees_result = []
+    trees_feature = []
+    n = np.shape(data_train)[1]
+    if n > 2:
+        k = int(log(n-1,2))+1
+    else:
+        k = 1
+    #开始构建每一颗树
+    for i in range(trees_num):
+        # 1 随机选择m个样本，k个特征
+        data_samples,feature = choose_samples(data_train,k)
+        # 2 构建每一棵分类树
+        tree = build_tree(data_samples)
+        # 3 保存好训练好的分类树
+        trees_feature.append(feature)
+        return trees_result,trees_feature
+
+def choose_samples(data,k):
+    '''
+    从样本中随机选择样本及特征
+    :param data: 原始数据集
+    :param k: 选择特征的个数
+    :return: data_samples(list) 选择出来的样本
+            feature(list) 选择出来的特征
+    '''
+    m,n = np.shape(data)
+    feature = []
+    for j in range(k):
+        feature.append(rd.randint(0,n-2))
+
+    # 选择m个样本的index
+    index = []
+    for i in range(m):
+        index.append(rd.randint(0,m-1))
+    # 从data中选择出m个样本的k个特征，组成数据集data_samples
+    data_samples = []
+    for i in range(m):
+        data_tmp = []
+        for fea in feature:
+            data_tmp.append(data[i][fea])
+        data_tmp.append(data[i][-1])
+        data_samples.append(data_tmp)
+    return data_samples,feature
+
+def load_data(file_name):
+    '''
+
+    :param file_name:
+    :return:
+    '''
+    data_train = []
+    f = open(file_name)
+    for line in f.readlines():
+        lines = line.strip().split('\t')
+        data_tmp = []
+        for x in lines:
+            data_tmp.append(float(x))
+        data_train.append(data_tmp)
+    f.close()
+    return data_train
+
+def get_predict(trees_result,trees_feature,data_train):
+    '''
+    利用训练好的随机森林模型对样本进行预测
+    :param trees_result: 训练好的随机森林模型
+    :param tress_feature: 每一棵分类树选择的特征
+    :param data_train: 训练样本
+    :return: final_predict(lst)
+    '''
+    m_trees = len(trees_result)
+    m = np.shape(data_train)[0]
+    result = []
+    for i in range(m_trees):
+        clf = trees_result[i]
+        feature = trees_feature[i]
+        data = split_data((predict(data[i][0:-1])))
+        result_i = []
+        for i in range(m):
+            result_i.append((predict(data[i][0:-1],clf).keys())[0])
+        result.append(result_i)
+    final_predict = np.sum(result,axis=0)
+    return  final_predict
+
+
+
+
+
+

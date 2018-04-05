@@ -1,0 +1,84 @@
+# coding:UTF-8
+# linear_regression
+
+import numpy as np
+from math import pow
+
+def load_data(file_path):
+    '''
+    :param file_path:
+    :return: feature(mat)
+             label(mat)
+    '''
+    f = open(file_path)
+    feature = []
+    label = []
+    for line in f.readlines():
+        feature_tmp = []
+        lines = line.strip().split('\t')
+        feature_tmp.append(1)
+        for i in range(len(lines)-1):
+            feature_tmp.append(float(lines[i]))
+        feature.append(feature_tmp)
+        label.append(float(lines[-1]))
+    f.close()
+
+    return np.mat(feature),np.mat(label).T
+
+def least_square(feature,label):
+    '''
+    :param feature: mat
+    :param label: mat
+    :return: w
+    '''
+    w = (feature.T * feature).I * feature.T * label
+    return w
+
+def first_derivativ(feature,label,w):
+    '''
+    :param feature:  m*n
+    :param label:  m*1
+    :param w:
+    :return: g(mat)  n*1  first derivativ
+    '''
+    '''    m,n = np.shape(feature)
+    g = np.mat(np.zeros((n,1)))
+    
+    for i in range(m):
+        err = label[i,0] - feature[i,]*w
+        for j in range(n):
+            g[j,] -= err * feature[i,j]
+    return g'''
+
+    # X.T * (X*W - Y)  is the same?
+    g = feature.T *(feature * w - label)
+    return g
+
+def second_derivativ(feature,label,w):
+    '''
+
+    :param feature: mat  m*n
+    :param label:  m*1
+    :param w:
+    :return: G(mat) n*n  why
+    '''
+    m,n = np.shape(feature)
+    G = np.mat(np.zeros((n,n)))
+    for i in range(m):
+        x_left = feature[i,].T
+        x_right = feature[i,]
+        G += x_left*x_right
+    return G
+
+    # G = feature.T * feature
+    # return G
+
+def get_error(feature,label,w):
+    '''
+    :param feature: m*n
+    :param label:  m*1
+    :param w: n*1
+    :return:  mse
+    '''
+    return (label - feature * w).T * (label - feature)/2
+
